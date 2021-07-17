@@ -1,2 +1,4 @@
 ﻿  main.cpp
+c:\users\수비드닭가슴살스테이크\source\repos\oop1\oop1\main.cpp(51): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
+c:\users\수비드닭가슴살스테이크\source\repos\oop1\oop1\main.cpp(62): warning C4018: '<': signed 또는 unsigned가 일치하지 않습니다.
   OOP1.vcxproj -> C:\Users\수비드닭가슴살스테이크\source\repos\OOP1\Debug\OOP1.exe
