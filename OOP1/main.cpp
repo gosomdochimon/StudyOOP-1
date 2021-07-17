@@ -59,7 +59,7 @@ int main()
 		for (int i = 0; i < 5; i++)
 			canvas[player_pos + i] = player_shape[i];
 
-		for (int i = 0; i < strlen(enemy_shape); i++)
+		for (int i = 0; i < strlen(enemy_shape); i++) //별로 안좋은 코드일까?
 			canvas[enemy_pos + i] = enemy_shape[i];
 
 		// enemy 그림을 canvas 공간에 enemy 위치에 복사
