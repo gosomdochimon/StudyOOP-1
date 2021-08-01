@@ -4,38 +4,213 @@
 #include <Windows.h>
 #include <conio.h>
 #include <string>
+#include <ctime>
 
 const int maxCount = 80;
+struct Bullet;
+struct Enemy;
 
-struct{
+
+
+struct Player{
 	int pos;
 	char shape[20];
 
-} Player;
+	bool bIsRight = false;
+
+	Player(const char* shape, int pos)
+	{
+		strcpy(this->shape, shape);
+		this->pos = rand() % (maxCount - strlen(this->shape));
+	}
+
+	bool IsInCanvas(int maxCount)
+	{
+ 		return (this->pos >= 0 && this->pos <= (maxCount - strlen(shape)));
+	}
+
+	void Draw(char* canvas, int maxCount)
+	{
+		strncpy(&canvas[pos], shape, strlen(shape));
+	}
+
+	void MoveRight()
+	{
+		pos += 1;
+	}
+
+	void MoveLeft()
+	{
+		pos -= 1;
+	}
 
 
-struct {
+
+};
+
+
+struct Enemy{
 	int pos;
 	char shape[20];
 
-}Enemy;
+	bool bIsRight = false;
+	int damagedRemain = 0;
 
-struct {
+	Enemy(const char* shape, int pos)
+	{
+		strcpy(this->shape, shape);
+		this->pos = rand() % (maxCount - strlen(shape));
+	}
+
+	bool IsInCanvas(int maxCount)
+	{
+		return (this->pos >= 0 && this->pos <= (maxCount - strlen(shape)));
+	}
+
+	void Draw(char* canvas, int maxCount)
+	{
+		strncpy(&canvas[pos], shape, strlen(shape));
+	}
+
+	void UpdateShape()
+	{
+		if ((pos) <= 1 && bIsRight == false)
+		{
+			bIsRight = true;
+		}
+		else if (bIsRight == true && (pos) >= (maxCount - strlen(shape)))
+		{
+			(pos) = maxCount - strlen(shape);
+
+			bIsRight = false;
+		}
+		else if (bIsRight == false)
+			(pos)--;
+		else if (bIsRight == true)
+			(pos)++;
+	}
+
+	//void DamagedEffect(Bullet bullet) //전방선언이 안먹히는듯하다 어찌해야할까 
+	//{
+	//	if ((this->pos == bullet.pos) || (pos + strlen(shape) >= bullet.pos))
+	//	{
+	//		if (damagedRemain < 2)
+	//		{
+	//			strcpy(shape, "(>___<)");
+	//		}
+	//		
+	//	}
+	//	else if (damagedRemain <= 2 )
+	//	{
+	//		damagedRemain = 0;
+	//		strcpy(shape, "(*___*)");
+	//	}
+	//}
+
+};
+
+
+struct Bullet{
 	int pos;
 	char shape[20];
-	const int MaxBullet = 10;
-}Bullet;
+	//bullet방향
+	bool b_bullet_right;
+	//bullet판정 
+	bool b_bullet_damaged;
+	//bullet 보여지는지 판정
+	bool b_is_fire;
+
+	//int maxBullet = 10;
+
+	Bullet(const char* shape)
+	{
+		this->pos = 0;
+		strcpy(this->shape, shape);
+		b_is_fire = false;
+		b_bullet_damaged = false;
+		b_bullet_right = false;
+	}
+
+	void Draw(char* canvas, int maxCount)
+	{
+		strncpy(&canvas[pos], shape, strlen(shape));
+	}
+
+	void StartFire(Player player1, char* canvas)
+	{
+		if (b_is_fire == true) return;
+		else
+		{
+			b_is_fire = true;
+			if (b_bullet_right == true)
+			{
+				strcpy(shape, "==>");
+				pos = player1.pos + strlen(player1.shape);
+			}
+			else {
+				strcpy(shape, "<==");
+				pos = player1.pos - 1;
+			}
+			strncpy(&canvas[pos], shape, strlen(shape));
+			
+		}
+	}
+
+	bool IsShotEnd(Enemy enemy)
+	{
+		if (((pos >= enemy.pos) && (b_bullet_right == true)) || ((b_bullet_right == false) && (pos <= (enemy.pos + strlen(enemy.shape)))) || (pos <=1) || (pos >= (maxCount - strlen(shape)))) //bullet_pos == enemy_shape은 안되는 경우가 있다 왜그런 걸까?
+		{
+			 b_is_fire = false;
+			 return b_is_fire;
+		}
+	}
+
+	bool ShotPos(Player player, Enemy enemy)
+	{
+		if (player.pos <= enemy.pos)
+		{
+			b_bullet_right = true;
+			return b_bullet_right;
+		}
+		else
+		{
+			b_bullet_right = false;
+			return b_bullet_right;
+		}
+	}
+
+	void UpdateBulletShape()
+	{
+		if (b_is_fire == false) return;
+		else if (b_is_fire == true)
+		{
+			 if (b_bullet_right == false)
+			{
+				 strcpy(shape, "<==");
+				(pos)--;
+			}
+			else
+			{
+				 strcpy(shape, "==>");
+				(pos)++;
+			}
+		}
+	}
+};
+
+
 
 void Clear(char* canvas)
 {
 	memset(canvas, ',', maxCount);
+	canvas[maxCount] = '\0';
 }
 
-void CanvasCheck(char* canvas, char* playerShape, int * playerPos, char* enemyShape, int *enemyPos, char* bulletShape, int *bulletPos)
+bool CanvasCheck(char* canvas, char* Shape, int * Pos)
 {
-	if (*bulletPos <= canvas[0] || *bulletPos >= strlen(bulletShape))
+	if (*Pos <= canvas[0] || *Pos >= strlen(Shape))
 	{
-		*bulletPos = 0;
+		return false;
 	}
 }
 
@@ -51,90 +226,10 @@ void draw(char* canvas, char* shape, int pos) {// 원본 정보 vs 복사정보
 	//strncpy(&canvas[player_pos], playershape, strlen(playershape));
 }
 
-void MoveLeft(int*pos)
-{
-	if ((*pos) <= 0)// update로 보낼것.
-		(*pos) = 0;
-	else {
-	(*pos)--;
-	}
-}
-
-void MoveRight(int*pos)
-{
-	if ((*pos) >= 75)
-	{
-		(*pos) = 75;
-	}
-	else
-	{
-		(*pos)++;
-	}
-}
-
-void StartFire(int *bullet_pos, int* owner_pos, char* bulletshape, char* ownershape, bool* startFire, bool* bulletright, char* canvas)
-{
-	//b_bullet_see, pos, bulletowner
-	// 예외
-	if (*startFire == true) return;
-	
-	*startFire = true;
-	//*bullet_pos = (*owner_pos);
-
-	//draw(canvas, bulletshape, *bullet_pos);
-	
-	*bullet_pos = strlen(ownershape) -1;
-
-	strncpy(&canvas[*bullet_pos], bulletshape, strlen(bulletshape));
-
-	//그리기 : 캔버스, 발사위치, 방향, 모양, (사거리)
-	//draw(char* canvas, char* shape, int pos)
-}
-
-//int *bullet_pos, int* owner_pos, char* bulletshape, char* ownershape, bool* startFire, bool* bulletright, char* canvas
-//void Input_key(int *bullet_pos, int* owner_pos, char* bulletshape, char* ownershape, bool* startFire, bool* bulletright, char* canvas)
-//{
-//	if (_kbhit()) // keyboard 받는지 확인.
-//	{
-//
-//		char key = _getch();
-//
-//		switch (key) {
-//		case 'd':
-//			MoveRight(owner_pos);
-//			break;
-//
-//		case 'a':
-//			MoveLeft(owner_pos);
-//			break;
-//
-//		case ' ':
-//			StartFire(bullet_pos, owner_pos, bulletshape, ownershape, startFire, bulletright, canvas);
-//			break;
-//		}
-//
-//	}
-//}
-
 void Render(char* canvas)
 {
 	canvas[maxCount] = '\0';
 	printf("%s\r", canvas);
-}
-
-
-
-
-bool bIsHit(bool bIsDamaged, char* ownerShape, char* damagedShape)
-{
-	//캐릭터가 맞았는지 판단.
-	//b_bullet_damged = false;
-	return bIsDamaged;
-}
-
-bool BIsFire(bool * isFire)
-{
-	return *isFire;
 }
 
 void Update_shape(char* shape, int* pos, bool& bPos) //웬만하면int형은 복사값을 가져온다.
@@ -156,84 +251,61 @@ void Update_shape(char* shape, int* pos, bool& bPos) //웬만하면int형은 복
 
 }
 
-void UpdateBulletShape(char* shape, int* pos, bool& bPos, bool *bIsFire)
-{
-	if (*bIsFire == false) return;
-	else if (*bIsFire == true)
-	{
-		if (*pos <= 1 || *pos >= (maxCount - strlen(shape)))
-		{
-			*bIsFire = false;
-		}
-		else if (bPos == false)
-		{
-			(*pos)--;
-		}
-		else
-		{
-			(*pos)++;
-		}
-	}
-}
-//
-//void draw(char* canvas, char* shape, int pos)
-//{
-//
-//	strncpy(&canvas[pos], shape, strlen(shape));
-//}
-
-
-
 int main()
 {
 
 	char canvas[maxCount + 1];
 
-	int player_pos = 0;
+	//int player_pos = 0;
+	//char player_shape[20] = "(o__o)";
+	Player player1{ "(0__0)", maxCount };
 
-	char player_shape[20] = "(o__o)";
+	//char enemy_shape[20] = "(*____*)";
+	Enemy enemy1{ "(*___*)", maxCount };
 
-	char enemy_shape[20] = "(*____*)";
+	//char bullet_shape[10] = "==";
+	Bullet bullet1{ "==" };
 
-	char bullet_shape[10] = "==";
-
-	int enemy_pos = maxCount - strlen(enemy_shape);
+	//int enemy_pos = maxCount - strlen(enemy_shape);
 	//적이 canvas 끝에 도착할때마다 방향 조정.
 	bool B_enemy_pos_is = false;
 
-	const int MaxBullet = 80;
-	int bullet_pos = 0;
-	//bullet방향
-	bool b_bullet_right = false;
-	//bullet판정 
-	bool b_bullet_damged = false;
-	//bullet 보여지는지 판정
-	bool b_is_fire = false;
+	
 
 	//char key;
 
 
 	while (1)
 	{
-		//CanvasCheck(canvas, player_shape, &player_pos, enemy_shape, &enemy_pos, bullet_shape, &bullet_pos);
+		//CanvasCheck(canvas, player_shape, &player_pos, enemy_shape,  &enemy_pos, bullet_shape, &bullet_pos);
+		if (player1.IsInCanvas(maxCount) == false || enemy1.IsInCanvas(maxCount) == false)
+			break;
 		//--------------------draw------------------------
 		//canvas 그리기.
 		Clear(canvas);
 
 		// player 그림을 canvas 공간에 enemy 위치에 복사
-		draw(canvas, player_shape, player_pos);
-
+		//draw(canvas, player_shape, player_pos);
+		player1.Draw(canvas, maxCount);
 		// enemy 그림을 canvas 공간에 enemy 위치에 복사
-		draw(canvas, enemy_shape, enemy_pos);
+		//draw(canvas, enemy_shape, enemy_pos);
+		enemy1.Draw(canvas, maxCount);
+		
 
-		if (b_is_fire == true)
+		if (bullet1.IsShotEnd(enemy1))
 		{
-			draw(canvas, bullet_shape, bullet_pos);
+			bullet1.Draw(canvas, maxCount);
 		}
 		//-------------------update----------------------
-		Update_shape(enemy_shape, &enemy_pos, B_enemy_pos_is);
-		UpdateBulletShape(bullet_shape, &bullet_pos, b_bullet_right, &b_is_fire);
-		
+		//Update_shape(enemy1.shape, &enemy1.pos, B_enemy_pos_is);
+		enemy1.UpdateShape();
+
+		//if (((bullet_pos >= enemy1.pos)&&(b_bullet_right == true)) || ((b_bullet_right == false)&&(bullet_pos <= (enemy1.pos + strlen(enemy1.shape))))) //bullet_pos == enemy_shape은 안되는 경우가 있다 왜그런 걸까?
+		//{
+		//	b_is_fire = false;
+		//}
+		//UpdateBulletShape(bullet1.shape, &bullet_pos, bullet1.b_bullet_right, &bullet1.b_is_fire);
+		bullet1.UpdateBulletShape();
 			
 		//총알 발사 시.
 		/*if (b_is_fire == true)
@@ -249,15 +321,23 @@ int main()
 
 			switch (key) {
 			case 'd':
-				MoveRight(&player_pos);
+				player1.MoveRight();
 				break;
 
 			case 'a':
-				MoveLeft(&player_pos);
+				player1.MoveLeft();
 				break;
 
 			case ' ':
-				StartFire(&bullet_pos, &player_pos, bullet_shape, player_shape, &b_is_fire, &b_bullet_right, canvas);
+				if (enemy1.pos > player1.pos)
+				{
+					bullet1.b_bullet_right = true;
+				}
+				else
+					bullet1.b_bullet_right = false;
+
+				//StartFire(&bullet_pos, &player1.pos, bullet1.shape, player1.shape, &bullet1.b_is_fire, &bullet1.b_bullet_right, canvas);
+				bullet1.StartFire(player1, canvas);
 				break;
 			}
 
