@@ -6,6 +6,8 @@
 #include <string>
 #include <ctime>
 
+#define Random() srand((unsigned)time(NULL))
+
 const int maxCount = 80;
 struct Bullet;
 struct Enemy;
@@ -20,6 +22,7 @@ struct Player{
 
 	Player(const char* shape, int pos)
 	{
+		Random();
 		strcpy(this->shape, shape);
 		this->pos = rand() % (maxCount - strlen(this->shape));
 	}
@@ -121,6 +124,7 @@ struct Bullet{
 	bool b_is_fire;
 
 	//int maxBullet = 10;
+	Bullet() {}
 
 	Bullet(const char* shape)
 	{
@@ -197,7 +201,7 @@ struct Bullet{
 		}
 	}
 };
-
+Bullet B[100];
 
 
 void Clear(char* canvas)
@@ -264,7 +268,7 @@ int main()
 	Enemy enemy1{ "(*___*)", maxCount };
 
 	//char bullet_shape[10] = "==";
-	Bullet bullet1{ "==" };
+	//Bullet bullet1{ "==" };
 
 	//int enemy_pos = maxCount - strlen(enemy_shape);
 	//적이 canvas 끝에 도착할때마다 방향 조정.
@@ -291,11 +295,14 @@ int main()
 		//draw(canvas, enemy_shape, enemy_pos);
 		enemy1.Draw(canvas, maxCount);
 		
-
-		if (bullet1.IsShotEnd(enemy1))
+		for (int i = 0; i < 100; ++i)
 		{
-			bullet1.Draw(canvas, maxCount);
+			if (B[i].IsShotEnd(enemy1))
+			{
+				B[i].Draw(canvas, maxCount);
+			}
 		}
+	
 		//-------------------update----------------------
 		//Update_shape(enemy1.shape, &enemy1.pos, B_enemy_pos_is);
 		enemy1.UpdateShape();
@@ -305,8 +312,11 @@ int main()
 		//	b_is_fire = false;
 		//}
 		//UpdateBulletShape(bullet1.shape, &bullet_pos, bullet1.b_bullet_right, &bullet1.b_is_fire);
-		bullet1.UpdateBulletShape();
-			
+	
+		for (int i = 0; i < 100; ++i)
+		{
+			B[i].UpdateBulletShape();
+		}
 		//총알 발사 시.
 		/*if (b_is_fire == true)
 		{
@@ -329,16 +339,23 @@ int main()
 				break;
 
 			case ' ':
-				if (enemy1.pos > player1.pos)
+				for (int i = 0; i < 100; ++i)
 				{
-					bullet1.b_bullet_right = true;
-				}
-				else
-					bullet1.b_bullet_right = false;
+					if (B[i].b_is_fire == false) {
+						if (enemy1.pos > player1.pos)
+						{
+							B[i].b_bullet_right = true;
+						}
+						else
+							B[i].b_bullet_right = false;
 
-				//StartFire(&bullet_pos, &player1.pos, bullet1.shape, player1.shape, &bullet1.b_is_fire, &bullet1.b_bullet_right, canvas);
-				bullet1.StartFire(player1, canvas);
-				break;
+						//StartFire(&bullet_pos, &player1.pos, bullet1.shape, player1.shape, &bullet1.b_is_fire, &bullet1.b_bullet_right, canvas);
+						B[i].StartFire(player1, canvas);
+						break;
+					}
+					
+				}
+				
 			}
 
 		}
